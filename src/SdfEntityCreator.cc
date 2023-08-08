@@ -70,6 +70,7 @@
 #include "gz/sim/components/Model.hh"
 #include "gz/sim/components/Name.hh"
 #include "gz/sim/components/NavSat.hh"
+#include "gz/sim/components/NavSatMultipath.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/ParentLinkName.hh"
 #include <gz/sim/components/ParticleEmitter.hh>
@@ -1032,6 +1033,15 @@ Entity SdfEntityCreator::CreateEntities(const sdf::Sensor *_sensor)
   {
     this->dataPtr->ecm->CreateComponent(sensorEntity,
             components::NavSat(*_sensor));
+
+    // Create components to be filled by physics.
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+        components::WorldLinearVelocity(math::Vector3d::Zero));
+  }
+  else if (_sensor->Type() == sdf::SensorType::NAVSAT_MULTIPATH)
+  {
+    this->dataPtr->ecm->CreateComponent(sensorEntity,
+            components::NavSatMultipath(*_sensor));
 
     // Create components to be filled by physics.
     this->dataPtr->ecm->CreateComponent(sensorEntity,

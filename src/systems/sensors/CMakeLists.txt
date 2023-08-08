@@ -9,6 +9,7 @@ gz_add_system(sensors
     gz-sensors${GZ_SENSORS_VER}::camera
     gz-sensors${GZ_SENSORS_VER}::depth_camera
     gz-sensors${GZ_SENSORS_VER}::gpu_lidar
+    gz-sensors${GZ_SENSORS_VER}::navsat_multipath
     gz-sensors${GZ_SENSORS_VER}::gz-sensors${GZ_SENSORS_VER}
     gz-sensors${GZ_SENSORS_VER}::lidar
     gz-sensors${GZ_SENSORS_VER}::rgbd_camera

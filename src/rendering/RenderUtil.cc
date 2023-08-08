@@ -59,6 +59,7 @@
 #include "gz/sim/components/Collision.hh"
 #include "gz/sim/components/DepthCamera.hh"
 #include "gz/sim/components/GpuLidar.hh"
+#include "gz/sim/components/NavSatMultipath.hh"
 #include "gz/sim/components/Geometry.hh"
 #include "gz/sim/components/Inertial.hh"
 #include "gz/sim/components/Joint.hh"
@@ -1718,6 +1719,7 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
   const std::string rgbdCameraSuffix{""};
   const std::string thermalCameraSuffix{"/image"};
   const std::string gpuLidarSuffix{"/scan"};
+  const std::string navSatMultipathSuffix{"/navsat_multipath"};
   const std::string segmentationCameraSuffix{"/segmentation"};
   const std::string boundingBoxCameraSuffix{"/boundingbox"};
   const std::string wideAngleCameraSuffix{"/image"};
@@ -1951,6 +1953,17 @@ void RenderUtilPrivate::CreateEntitiesFirstUpdate(
           return true;
         });
 
+    // Create navsat multipath
+    _ecm.Each<components::NavSatMultipath, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::NavSatMultipath *_navsatMultipath,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _navsatMultipath->Data(), _parent->Data(),
+                       navSatMultipathSuffix);
+          return true;
+        });    
+
     // Create thermal camera
     _ecm.Each<components::ThermalCamera, components::ParentEntity>(
       [&](const Entity &_entity,
@@ -2006,6 +2019,7 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
   const std::string rgbdCameraSuffix{""};
   const std::string thermalCameraSuffix{"/image"};
   const std::string gpuLidarSuffix{"/scan"};
+  const std::string navSatMultipathSuffix{"/navsat_multipath"};
   const std::string segmentationCameraSuffix{"/segmentation"};
   const std::string boundingBoxCameraSuffix{"/boundingbox"};
   const std::string wideAngleCameraSuffix{"/image"};
@@ -2240,6 +2254,17 @@ void RenderUtilPrivate::CreateEntitiesRuntime(
           return true;
         });
 
+    // Create navsat multipath
+    _ecm.EachNew<components::NavSatMultipath, components::ParentEntity>(
+      [&](const Entity &_entity,
+          const components::NavSatMultipath *_navsatMultipath,
+          const components::ParentEntity *_parent)->bool
+        {
+          this->AddNewSensor(_ecm, _entity, _navsatMultipath->Data(), _parent->Data(),
+                       navSatMultipathSuffix);
+          return true;
+        });   
+
     // Create thermal camera
     _ecm.EachNew<components::ThermalCamera, components::ParentEntity>(
       [&](const Entity &_entity,
@@ -2424,6 +2449,16 @@ void RenderUtilPrivate::UpdateRenderingEntities(
         return true;
       });
 
+  // Update navsat_multipath
+  _ecm.Each<components::NavSatMultipath, components::Pose>(
+      [&](const Entity &_entity,
+        const components::NavSatMultipath *,
+        const components::Pose *_pose)->bool
+      {
+        this->entityPoses[_entity] = _pose->Data();
+        return true;
+      });    
+
   // Update thermal cameras
   _ecm.Each<components::ThermalCamera, components::Pose>(
       [&](const Entity &_entity,
@@ -2596,6 +2631,14 @@ void RenderUtilPrivate::RemoveRenderingEntities(
         this->removeEntities[_entity] = _info.iterations;
         return true;
       });
+
+  // navsat_multipaths
+  _ecm.EachRemoved<components::NavSatMultipath>(
+    [&](const Entity &_entity, const components::NavSatMultipath *)->bool
+      {
+        this->removeEntities[_entity] = _info.iterations;
+        return true;
+      });    
 
   // thermal cameras
   _ecm.EachRemoved<components::ThermalCamera>(

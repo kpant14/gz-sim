@@ -140,6 +140,7 @@ gz_find_package(gz-sensors7 REQUIRED VERSION 7.1
     logical_camera
     magnetometer
     navsat
+    navsat_multipath
 
     # rendering
     rendering

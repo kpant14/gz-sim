@@ -35,6 +35,7 @@
 #include "gz/sim/components/DepthCamera.hh"
 #include "gz/sim/components/ForceTorque.hh"
 #include "gz/sim/components/GpuLidar.hh"
+#include "gz/sim/components/NavSatMultipath.hh"
 #include "gz/sim/components/Imu.hh"
 #include "gz/sim/components/Inertial.hh"
 #include "gz/sim/components/Joint.hh"
@@ -698,7 +699,17 @@ namespace sdf_generator
       const sdf::Sensor &sensor = gpuLidarComp->Data();
       _elem->Copy(sensor.ToElement());
       return updateSensorNameAndPose();
+    } 
+
+    // navsat_multipath
+    auto navSatMultipathComp = _ecm.Component<components::NavSatMultipath>(_entity);
+    if (navSatMultipathComp)
+    {
+      const sdf::Sensor &sensor = navSatMultipathComp->Data();
+      _elem->Copy(sensor.ToElement());
+      return updateSensorNameAndPose();
     }
+
     // altimeter
     auto altimeterComp = _ecm.Component<components::Altimeter>(_entity);
     if (altimeterComp)

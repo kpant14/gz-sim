@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
-*/
+ */
 
 #include <gz/msgs/actor.pb.h>
 #include <gz/msgs/atmosphere.pb.h>
@@ -64,6 +64,7 @@
 #include <sdf/Material.hh>
 #include <sdf/Mesh.hh>
 #include <sdf/NavSat.hh>
+#include <sdf/NavSatMultipath.hh>
 #include <sdf/Pbr.hh>
 #include <sdf/Plane.hh>
 #include <sdf/Polyline.hh>
@@ -79,13 +80,15 @@
 using namespace gz;
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-msgs::Entity_Type gz::sim::convert(const std::string &_in)
+    msgs::Entity_Type
+    gz::sim::convert(const std::string &_in)
 {
   msgs::Entity_Type out = msgs::Entity_Type_NONE;
 
-  if (_in == "light") {
+  if (_in == "light")
+  {
     return msgs::Entity_Type_LIGHT;
   }
   else if (_in == "model")
@@ -117,9 +120,10 @@ msgs::Entity_Type gz::sim::convert(const std::string &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-math::Pose3d gz::sim::convert(const msgs::Pose &_in)
+    math::Pose3d
+    gz::sim::convert(const msgs::Pose &_in)
 {
   math::Pose3d out(_in.position().x(),
                    _in.position().y(),
@@ -134,9 +138,10 @@ math::Pose3d gz::sim::convert(const msgs::Pose &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-msgs::Collision gz::sim::convert(const sdf::Collision &_in)
+    msgs::Collision
+    gz::sim::convert(const sdf::Collision &_in)
 {
   msgs::Collision out;
   out.set_name(_in.Name());
@@ -147,9 +152,10 @@ msgs::Collision gz::sim::convert(const sdf::Collision &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-sdf::Collision gz::sim::convert(const msgs::Collision &_in)
+    sdf::Collision
+    gz::sim::convert(const msgs::Collision &_in)
 {
   sdf::Collision out;
   out.SetName(_in.name());
@@ -159,9 +165,10 @@ sdf::Collision gz::sim::convert(const msgs::Collision &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-msgs::Geometry gz::sim::convert(const sdf::Geometry &_in)
+    msgs::Geometry
+    gz::sim::convert(const sdf::Geometry &_in)
 {
   msgs::Geometry out;
   if (_in.Type() == sdf::GeometryType::BOX && _in.BoxShape())
@@ -185,7 +192,7 @@ msgs::Geometry gz::sim::convert(const sdf::Geometry &_in)
   {
     out.set_type(msgs::Geometry::ELLIPSOID);
     msgs::Set(out.mutable_ellipsoid()->mutable_radii(),
-             _in.EllipsoidShape()->Radii());
+              _in.EllipsoidShape()->Radii());
   }
   else if (_in.Type() == sdf::GeometryType::PLANE && _in.PlaneShape())
   {
@@ -220,7 +227,7 @@ msgs::Geometry gz::sim::convert(const sdf::Geometry &_in)
     auto heightmapMsg = out.mutable_heightmap();
 
     heightmapMsg->set_filename(asFullPath(heightmapSdf->Uri(),
-        heightmapSdf->FilePath()));
+                                          heightmapSdf->FilePath()));
     msgs::Set(heightmapMsg->mutable_size(), heightmapSdf->Size());
     msgs::Set(heightmapMsg->mutable_origin(), heightmapSdf->Position());
     heightmapMsg->set_use_terrain_paging(heightmapSdf->UseTerrainPaging());
@@ -232,9 +239,9 @@ msgs::Geometry gz::sim::convert(const sdf::Geometry &_in)
       auto textureMsg = heightmapMsg->add_texture();
       textureMsg->set_size(textureSdf->Size());
       textureMsg->set_diffuse(asFullPath(textureSdf->Diffuse(),
-          heightmapSdf->FilePath()));
+                                         heightmapSdf->FilePath()));
       textureMsg->set_normal(asFullPath(textureSdf->Normal(),
-          heightmapSdf->FilePath()));
+                                        heightmapSdf->FilePath()));
     }
 
     for (auto i = 0u; i < heightmapSdf->BlendCount(); ++i)
@@ -246,7 +253,7 @@ msgs::Geometry gz::sim::convert(const sdf::Geometry &_in)
     }
   }
   else if (_in.Type() == sdf::GeometryType::POLYLINE &&
-      !_in.PolylineShape().empty())
+           !_in.PolylineShape().empty())
   {
     out.set_type(msgs::Geometry::POLYLINE);
     for (const auto &polyline : _in.PolylineShape())
@@ -262,15 +269,16 @@ msgs::Geometry gz::sim::convert(const sdf::Geometry &_in)
   else
   {
     gzerr << "Geometry type [" << static_cast<int>(_in.Type())
-           << "] not supported" << std::endl;
+          << "] not supported" << std::endl;
   }
   return out;
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-sdf::Geometry gz::sim::convert(const msgs::Geometry &_in)
+    sdf::Geometry
+    gz::sim::convert(const msgs::Geometry &_in)
 {
   sdf::Geometry out;
   if (_in.type() == msgs::Geometry::BOX && _in.has_box())
@@ -399,15 +407,16 @@ sdf::Geometry gz::sim::convert(const msgs::Geometry &_in)
   else
   {
     gzerr << "Geometry type [" << static_cast<int>(_in.type())
-           << "] not supported" << std::endl;
+          << "] not supported" << std::endl;
   }
   return out;
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-msgs::Material gz::sim::convert(const sdf::Material &_in)
+    msgs::Material
+    gz::sim::convert(const sdf::Material &_in)
 {
   msgs::Material out;
   msgs::Set(out.mutable_ambient(), _in.Ambient());
@@ -435,29 +444,19 @@ msgs::Material gz::sim::convert(const sdf::Material &_in)
     if (workflow)
     {
       pbrMsg->set_metalness(workflow->Metalness());
-      pbrMsg->set_metalness_map(workflow->MetalnessMap().empty() ? "" :
-          asFullPath(workflow->MetalnessMap(), _in.FilePath()));
+      pbrMsg->set_metalness_map(workflow->MetalnessMap().empty() ? "" : asFullPath(workflow->MetalnessMap(), _in.FilePath()));
       pbrMsg->set_roughness(workflow->Roughness());
-      pbrMsg->set_roughness_map(workflow->RoughnessMap().empty() ? "" :
-          asFullPath(workflow->RoughnessMap(), _in.FilePath()));
+      pbrMsg->set_roughness_map(workflow->RoughnessMap().empty() ? "" : asFullPath(workflow->RoughnessMap(), _in.FilePath()));
       pbrMsg->set_glossiness(workflow->Glossiness());
-      pbrMsg->set_glossiness_map(workflow->GlossinessMap().empty() ? "" :
-          asFullPath(workflow->GlossinessMap(), _in.FilePath()));
-      pbrMsg->set_specular_map(workflow->SpecularMap().empty() ? "" :
-          asFullPath(workflow->SpecularMap(), _in.FilePath()));
-      pbrMsg->set_albedo_map(workflow->AlbedoMap().empty() ? "" :
-          asFullPath(workflow->AlbedoMap(), _in.FilePath()));
-      pbrMsg->set_normal_map(workflow->NormalMap().empty() ? "" :
-          asFullPath(workflow->NormalMap(), _in.FilePath()));
+      pbrMsg->set_glossiness_map(workflow->GlossinessMap().empty() ? "" : asFullPath(workflow->GlossinessMap(), _in.FilePath()));
+      pbrMsg->set_specular_map(workflow->SpecularMap().empty() ? "" : asFullPath(workflow->SpecularMap(), _in.FilePath()));
+      pbrMsg->set_albedo_map(workflow->AlbedoMap().empty() ? "" : asFullPath(workflow->AlbedoMap(), _in.FilePath()));
+      pbrMsg->set_normal_map(workflow->NormalMap().empty() ? "" : asFullPath(workflow->NormalMap(), _in.FilePath()));
       pbrMsg->set_ambient_occlusion_map(
-          workflow->AmbientOcclusionMap().empty() ? "" :
-          asFullPath(workflow->AmbientOcclusionMap(), _in.FilePath()));
-      pbrMsg->set_environment_map(workflow->EnvironmentMap().empty() ? "" :
-          asFullPath(workflow->EnvironmentMap(), _in.FilePath()));
-      pbrMsg->set_emissive_map(workflow->EmissiveMap().empty() ? "" :
-          asFullPath(workflow->EmissiveMap(), _in.FilePath()));
-      pbrMsg->set_light_map(workflow->LightMap().empty() ? "" :
-          asFullPath(workflow->LightMap(), _in.FilePath()));
+          workflow->AmbientOcclusionMap().empty() ? "" : asFullPath(workflow->AmbientOcclusionMap(), _in.FilePath()));
+      pbrMsg->set_environment_map(workflow->EnvironmentMap().empty() ? "" : asFullPath(workflow->EnvironmentMap(), _in.FilePath()));
+      pbrMsg->set_emissive_map(workflow->EmissiveMap().empty() ? "" : asFullPath(workflow->EmissiveMap(), _in.FilePath()));
+      pbrMsg->set_light_map(workflow->LightMap().empty() ? "" : asFullPath(workflow->LightMap(), _in.FilePath()));
       pbrMsg->set_light_map_texcoord_set(workflow->LightMapTexCoordSet());
     }
   }
@@ -465,9 +464,10 @@ msgs::Material gz::sim::convert(const sdf::Material &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-sdf::Material gz::sim::convert(const msgs::Material &_in)
+    sdf::Material
+    gz::sim::convert(const msgs::Material &_in)
 {
   sdf::Material out;
   out.SetAmbient(msgs::Convert(_in.ambient()));
@@ -509,9 +509,10 @@ sdf::Material gz::sim::convert(const msgs::Material &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-msgs::Actor gz::sim::convert(const sdf::Actor &_in)
+    msgs::Actor
+    gz::sim::convert(const sdf::Actor &_in)
 {
   msgs::Actor out;
   out.mutable_entity()->set_name(_in.Name());
@@ -549,9 +550,10 @@ msgs::Actor gz::sim::convert(const sdf::Actor &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-sdf::Actor gz::sim::convert(const msgs::Actor &_in)
+    sdf::Actor
+    gz::sim::convert(const msgs::Actor &_in)
 {
   sdf::Actor out;
   out.SetName(_in.entity().name());
@@ -592,9 +594,10 @@ sdf::Actor gz::sim::convert(const msgs::Actor &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-msgs::Light gz::sim::convert(const sdf::Light &_in)
+    msgs::Light
+    gz::sim::convert(const sdf::Light &_in)
 {
   msgs::Light out;
   out.set_name(_in.Name());
@@ -624,9 +627,10 @@ msgs::Light gz::sim::convert(const sdf::Light &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-sdf::Light gz::sim::convert(const msgs::Light &_in)
+    sdf::Light
+    gz::sim::convert(const msgs::Light &_in)
 {
   sdf::Light out;
   out.SetName(_in.name());
@@ -656,9 +660,10 @@ sdf::Light gz::sim::convert(const msgs::Light &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-msgs::GUI gz::sim::convert(const sdf::Gui &_in)
+    msgs::GUI
+    gz::sim::convert(const sdf::Gui &_in)
 {
   msgs::GUI out;
 
@@ -680,10 +685,11 @@ msgs::GUI gz::sim::convert(const sdf::Gui &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-msgs::Time gz::sim::convert(
-    const std::chrono::steady_clock::duration &_in)
+    msgs::Time
+    gz::sim::convert(
+        const std::chrono::steady_clock::duration &_in)
 {
   msgs::Time out;
 
@@ -696,34 +702,38 @@ msgs::Time gz::sim::convert(
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-std::chrono::steady_clock::duration gz::sim::convert(
-    const msgs::Time &_in)
+    std::chrono::steady_clock::duration
+    gz::sim::convert(
+        const msgs::Time &_in)
 {
   return std::chrono::seconds(_in.sec()) + std::chrono::nanoseconds(_in.nsec());
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-msgs::Inertial gz::sim::convert(const math::Inertiald &_in)
+    msgs::Inertial
+    gz::sim::convert(const math::Inertiald &_in)
 {
   return msgs::Convert(_in);
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-math::Inertiald gz::sim::convert(const msgs::Inertial &_in)
+    math::Inertiald
+    gz::sim::convert(const msgs::Inertial &_in)
 {
   return msgs::Convert(_in);
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-msgs::Axis gz::sim::convert(const sdf::JointAxis &_in)
+    msgs::Axis
+    gz::sim::convert(const sdf::JointAxis &_in)
 {
   msgs::Axis out;
   msgs::Set(out.mutable_xyz(), _in.Xyz());
@@ -751,13 +761,15 @@ msgs::Axis gz::sim::convert(const sdf::JointAxis &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-sdf::JointAxis gz::sim::convert(const msgs::Axis &_in)
+    sdf::JointAxis
+    gz::sim::convert(const msgs::Axis &_in)
 {
   sdf::JointAxis out;
   sdf::Errors errors = out.SetXyz(msgs::Convert(_in.xyz()));
-  for (const auto &err : errors) {
+  for (const auto &err : errors)
+  {
     gzerr << err.Message() << std::endl;
   }
   out.SetXyzExpressedIn(_in.xyz_expressed_in());
@@ -771,9 +783,10 @@ sdf::JointAxis gz::sim::convert(const msgs::Axis &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-msgs::Scene gz::sim::convert(const sdf::Scene &_in)
+    msgs::Scene
+    gz::sim::convert(const sdf::Scene &_in)
 {
   msgs::Scene out;
   // todo(anyone) add Name to sdf::Scene?
@@ -795,7 +808,7 @@ msgs::Scene gz::sim::convert(const sdf::Scene &_in)
     skyMsg->set_humidity(_in.Sky()->CloudHumidity());
     skyMsg->set_mean_cloud_size(_in.Sky()->CloudMeanSize());
     msgs::Set(skyMsg->mutable_cloud_ambient(),
-        _in.Sky()->CloudAmbient());
+              _in.Sky()->CloudAmbient());
 
     if (!_in.Sky()->CubemapUri().empty())
     {
@@ -809,9 +822,10 @@ msgs::Scene gz::sim::convert(const sdf::Scene &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-sdf::Scene gz::sim::convert(const msgs::Scene &_in)
+    sdf::Scene
+    gz::sim::convert(const msgs::Scene &_in)
 {
   sdf::Scene out;
   // todo(anyone) add SetName to sdf::Scene?
@@ -849,9 +863,10 @@ sdf::Scene gz::sim::convert(const msgs::Scene &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-msgs::Atmosphere gz::sim::convert(const sdf::Atmosphere &_in)
+    msgs::Atmosphere
+    gz::sim::convert(const sdf::Atmosphere &_in)
 {
   msgs::Atmosphere out;
   out.set_temperature(_in.Temperature().Kelvin());
@@ -867,9 +882,10 @@ msgs::Atmosphere gz::sim::convert(const sdf::Atmosphere &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-sdf::Atmosphere gz::sim::convert(const msgs::Atmosphere &_in)
+    sdf::Atmosphere
+    gz::sim::convert(const msgs::Atmosphere &_in)
 {
   sdf::Atmosphere out;
   out.SetTemperature(math::Temperature(_in.temperature()));
@@ -886,7 +902,7 @@ sdf::Atmosphere gz::sim::convert(const msgs::Atmosphere &_in)
 
 //////////////////////////////////////////////////
 void gz::sim::set(msgs::Time *_msg,
-    const std::chrono::steady_clock::duration &_in)
+                  const std::chrono::steady_clock::duration &_in)
 {
   auto secNsec = math::durationToSecNsec(_in);
   _msg->set_sec(secNsec.first);
@@ -895,7 +911,7 @@ void gz::sim::set(msgs::Time *_msg,
 
 //////////////////////////////////////////////////
 void gz::sim::set(msgs::WorldStatistics *_msg,
-    const sim::UpdateInfo &_in)
+                  const sim::UpdateInfo &_in)
 {
   set(_msg->mutable_sim_time(), _in.simTime);
   set(_msg->mutable_real_time(), _in.realTime);
@@ -905,9 +921,10 @@ void gz::sim::set(msgs::WorldStatistics *_msg,
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-msgs::Physics gz::sim::convert(const sdf::Physics &_in)
+    msgs::Physics
+    gz::sim::convert(const sdf::Physics &_in)
 {
   msgs::Physics out;
   out.set_max_step_size(_in.MaxStepSize());
@@ -916,9 +933,10 @@ msgs::Physics gz::sim::convert(const sdf::Physics &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-sdf::Physics gz::sim::convert(const msgs::Physics &_in)
+    sdf::Physics
+    gz::sim::convert(const msgs::Physics &_in)
 {
   sdf::Physics out;
   out.SetRealTimeFactor(_in.real_time_factor());
@@ -931,17 +949,17 @@ void gz::sim::set(msgs::SensorNoise *_msg, const sdf::Noise &_sdf)
 {
   switch (_sdf.Type())
   {
-    case sdf::NoiseType::GAUSSIAN:
-      _msg->set_type(msgs::SensorNoise::GAUSSIAN);
-      break;
-    case sdf::NoiseType::GAUSSIAN_QUANTIZED:
-      _msg->set_type(msgs::SensorNoise::GAUSSIAN_QUANTIZED);
-      break;
+  case sdf::NoiseType::GAUSSIAN:
+    _msg->set_type(msgs::SensorNoise::GAUSSIAN);
+    break;
+  case sdf::NoiseType::GAUSSIAN_QUANTIZED:
+    _msg->set_type(msgs::SensorNoise::GAUSSIAN_QUANTIZED);
+    break;
 
-    case sdf::NoiseType::NONE:
-    default:
-      _msg->set_type(msgs::SensorNoise::NONE);
-      break;
+  case sdf::NoiseType::NONE:
+  default:
+    _msg->set_type(msgs::SensorNoise::NONE);
+    break;
   }
 
   _msg->set_mean(_sdf.Mean());
@@ -992,25 +1010,26 @@ sdf::LightType gz::sim::convert(const std::string &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-sdf::Noise gz::sim::convert(const msgs::SensorNoise &_in)
+    sdf::Noise
+    gz::sim::convert(const msgs::SensorNoise &_in)
 {
   sdf::Noise out;
 
   switch (_in.type())
   {
-    case msgs::SensorNoise::GAUSSIAN:
-      out.SetType(sdf::NoiseType::GAUSSIAN);
-      break;
-    case msgs::SensorNoise::GAUSSIAN_QUANTIZED:
-      out.SetType(sdf::NoiseType::GAUSSIAN_QUANTIZED);
-      break;
+  case msgs::SensorNoise::GAUSSIAN:
+    out.SetType(sdf::NoiseType::GAUSSIAN);
+    break;
+  case msgs::SensorNoise::GAUSSIAN_QUANTIZED:
+    out.SetType(sdf::NoiseType::GAUSSIAN_QUANTIZED);
+    break;
 
-    case msgs::SensorNoise::NONE:
-    default:
-      out.SetType(sdf::NoiseType::NONE);
-      break;
+  case msgs::SensorNoise::NONE:
+  default:
+    out.SetType(sdf::NoiseType::NONE);
+    break;
   }
 
   out.SetMean(_in.mean());
@@ -1023,11 +1042,11 @@ sdf::Noise gz::sim::convert(const msgs::SensorNoise &_in)
   return out;
 }
 
-
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
+    msgs::Sensor
+    gz::sim::convert(const sdf::Sensor &_in)
 {
   msgs::Sensor out;
   out.set_name(_in.Name());
@@ -1044,23 +1063,23 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
       if (_in.MagnetometerSensor()->XNoise().Type() != sdf::NoiseType::NONE)
       {
         sim::set(sensor->mutable_x_noise(),
-            _in.MagnetometerSensor()->XNoise());
+                 _in.MagnetometerSensor()->XNoise());
       }
       if (_in.MagnetometerSensor()->YNoise().Type() != sdf::NoiseType::NONE)
       {
         sim::set(sensor->mutable_y_noise(),
-            _in.MagnetometerSensor()->YNoise());
+                 _in.MagnetometerSensor()->YNoise());
       }
       if (_in.MagnetometerSensor()->ZNoise().Type() != sdf::NoiseType::NONE)
       {
         sim::set(sensor->mutable_z_noise(),
-            _in.MagnetometerSensor()->ZNoise());
+                 _in.MagnetometerSensor()->ZNoise());
       }
     }
     else
     {
       gzerr << "Attempting to convert a magnetometer SDF sensor, but the "
-        << "sensor pointer is null.\n";
+            << "sensor pointer is null.\n";
     }
   }
   else if (_in.Type() == sdf::SensorType::CAMERA ||
@@ -1091,7 +1110,7 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
     else
     {
       gzerr << "Attempting to convert a camera SDF sensor, but the "
-        << "sensor pointer is null.\n";
+            << "sensor pointer is null.\n";
     }
   }
   else if (_in.Type() == sdf::SensorType::GPS ||
@@ -1107,54 +1126,89 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
       if (sdfSensor->HorizontalPositionNoise().Type() != sdf::NoiseType::NONE)
       {
         sim::set(sensor->mutable_position()->mutable_horizontal_noise(),
-            sdfSensor->HorizontalPositionNoise());
+                 sdfSensor->HorizontalPositionNoise());
       }
       if (sdfSensor->VerticalPositionNoise().Type() != sdf::NoiseType::NONE)
       {
         sim::set(sensor->mutable_position()->mutable_vertical_noise(),
-            sdfSensor->VerticalPositionNoise());
-
+                 sdfSensor->VerticalPositionNoise());
       }
       if (sdfSensor->HorizontalVelocityNoise().Type() != sdf::NoiseType::NONE)
       {
         sim::set(sensor->mutable_velocity()->mutable_horizontal_noise(),
-            sdfSensor->HorizontalVelocityNoise());
+                 sdfSensor->HorizontalVelocityNoise());
       }
       if (sdfSensor->VerticalVelocityNoise().Type() != sdf::NoiseType::NONE)
       {
         sim::set(sensor->mutable_velocity()->mutable_vertical_noise(),
-            sdfSensor->VerticalVelocityNoise());
+                 sdfSensor->VerticalVelocityNoise());
       }
     }
     else
     {
       gzerr << "Attempting to convert a NavSat SDF sensor, but the "
-        << "sensor pointer is null.\n";
+            << "sensor pointer is null.\n";
     }
   }
+  // else if (_in.Type() == sdf::SensorType::GPS ||
+  //          _in.Type() == sdf::SensorType::NAVSAT_MULTIPATH)
+  // {
+  //   if (_in.NavSatMultipathSensor())
+  //   {
+  //     auto sdfSensor = _in.NavSatMultipathSensor();
+
+  //     // \TODO(chapulina) Update to navsat on Garden
+  //     auto sensor = out.mutable_gps();
+
+  //     if (sdfSensor->HorizontalPositionNoise().Type() != sdf::NoiseType::NONE)
+  //     {
+  //       sim::set(sensor->mutable_position()->mutable_horizontal_noise(),
+  //                sdfSensor->HorizontalPositionNoise());
+  //     }
+  //     if (sdfSensor->VerticalPositionNoise().Type() != sdf::NoiseType::NONE)
+  //     {
+  //       sim::set(sensor->mutable_position()->mutable_vertical_noise(),
+  //                sdfSensor->VerticalPositionNoise());
+  //     }
+  //     if (sdfSensor->HorizontalVelocityNoise().Type() != sdf::NoiseType::NONE)
+  //     {
+  //       sim::set(sensor->mutable_velocity()->mutable_horizontal_noise(),
+  //                sdfSensor->HorizontalVelocityNoise());
+  //     }
+  //     if (sdfSensor->VerticalVelocityNoise().Type() != sdf::NoiseType::NONE)
+  //     {
+  //       sim::set(sensor->mutable_velocity()->mutable_vertical_noise(),
+  //                sdfSensor->VerticalVelocityNoise());
+  //     }
+  //   }
+  //   else
+  //   {
+  //     gzerr << "Attempting to convert a NavSatMultipath SDF sensor, but the "
+  //           << "sensor pointer is null.\n";
+  //   }
+  // }
+
   else if (_in.Type() == sdf::SensorType::ALTIMETER)
   {
     if (_in.AltimeterSensor())
     {
       msgs::AltimeterSensor *sensor = out.mutable_altimeter();
 
-      if (_in.AltimeterSensor()->VerticalPositionNoise().Type()
-          != sdf::NoiseType::NONE)
+      if (_in.AltimeterSensor()->VerticalPositionNoise().Type() != sdf::NoiseType::NONE)
       {
         sim::set(sensor->mutable_vertical_position_noise(),
-            _in.AltimeterSensor()->VerticalPositionNoise());
+                 _in.AltimeterSensor()->VerticalPositionNoise());
       }
-      if (_in.AltimeterSensor()->VerticalVelocityNoise().Type()
-          != sdf::NoiseType::NONE)
+      if (_in.AltimeterSensor()->VerticalVelocityNoise().Type() != sdf::NoiseType::NONE)
       {
         sim::set(sensor->mutable_vertical_velocity_noise(),
-            _in.AltimeterSensor()->VerticalVelocityNoise());
+                 _in.AltimeterSensor()->VerticalVelocityNoise());
       }
     }
     else
     {
       gzerr << "Attempting to convert an altimeter SDF sensor, but the "
-        << "sensor pointer is null.\n";
+            << "sensor pointer is null.\n";
     }
   }
   else if (_in.Type() == sdf::SensorType::AIR_PRESSURE)
@@ -1163,11 +1217,10 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
     {
       msgs::AirPressureSensor *sensor = out.mutable_air_pressure();
 
-      if (_in.AirPressureSensor()->PressureNoise().Type()
-          != sdf::NoiseType::NONE)
+      if (_in.AirPressureSensor()->PressureNoise().Type() != sdf::NoiseType::NONE)
       {
         sim::set(sensor->mutable_pressure_noise(),
-            _in.AirPressureSensor()->PressureNoise());
+                 _in.AirPressureSensor()->PressureNoise());
       }
       sensor->set_reference_altitude(
           _in.AirPressureSensor()->ReferenceAltitude());
@@ -1175,7 +1228,7 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
     else
     {
       gzerr << "Attempting to convert an air pressure SDF sensor, but the "
-        << "sensor pointer is null.\n";
+            << "sensor pointer is null.\n";
     }
   }
   // TODO(ahcorde): Enable this code in Harmonic
@@ -1246,7 +1299,7 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
           sdfImu->Localization());
 
       msgs::Set(sensor->mutable_orientation_ref_frame()->mutable_custom_rpy(),
-        sdfImu->CustomRpy());
+                sdfImu->CustomRpy());
       sensor->mutable_orientation_ref_frame()->set_custom_rpy_parent_frame(
           sdfImu->CustomRpyParentFrame());
 
@@ -1259,11 +1312,12 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
     else
     {
       gzerr << "Attempting to convert an IMU SDF sensor, but the "
-        << "sensor pointer is null.\n";
+            << "sensor pointer is null.\n";
     }
   }
   else if (_in.Type() == sdf::SensorType::LIDAR ||
-           _in.Type() == sdf::SensorType::GPU_LIDAR)
+           _in.Type() == sdf::SensorType::GPU_LIDAR ||
+           _in.Type() == sdf::SensorType::NAVSAT_MULTIPATH)
   {
     if (_in.LidarSensor())
     {
@@ -1293,16 +1347,17 @@ msgs::Sensor gz::sim::convert(const sdf::Sensor &_in)
     else
     {
       gzerr << "Attempting to convert a Lidar SDF sensor, but the "
-        << "sensor pointer is null.\n";
+            << "sensor pointer is null.\n";
     }
   }
   return out;
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
+    sdf::Sensor
+    gz::sim::convert(const msgs::Sensor &_in)
 {
   sdf::Sensor out;
   out.SetName(_in.name());
@@ -1320,23 +1375,23 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
       if (_in.magnetometer().has_x_noise())
       {
         sensor.SetXNoise(sim::convert<sdf::Noise>(
-              _in.magnetometer().x_noise()));
+            _in.magnetometer().x_noise()));
       }
       if (_in.magnetometer().has_y_noise())
       {
         sensor.SetYNoise(sim::convert<sdf::Noise>(
-              _in.magnetometer().y_noise()));
+            _in.magnetometer().y_noise()));
       }
       if (_in.magnetometer().has_z_noise())
       {
         sensor.SetZNoise(sim::convert<sdf::Noise>(
-              _in.magnetometer().z_noise()));
+            _in.magnetometer().z_noise()));
       }
     }
     else
     {
       gzerr << "Attempting to convert a magnetometer sensor message, but the "
-        << "message does not have a magnetometer nested message.\n";
+            << "message does not have a magnetometer nested message.\n";
     }
 
     out.SetMagnetometerSensor(sensor);
@@ -1372,7 +1427,7 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
     else
     {
       gzerr << "Attempting to convert a camera sensor message, but the "
-        << "message does not have a camera nested message.\n";
+            << "message does not have a camera nested message.\n";
     }
 
     out.SetCameraSensor(sensor);
@@ -1385,19 +1440,19 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
       if (_in.altimeter().has_vertical_position_noise())
       {
         sensor.SetVerticalPositionNoise(sim::convert<sdf::Noise>(
-              _in.altimeter().vertical_position_noise()));
+            _in.altimeter().vertical_position_noise()));
       }
 
       if (_in.altimeter().has_vertical_velocity_noise())
       {
         sensor.SetVerticalVelocityNoise(sim::convert<sdf::Noise>(
-              _in.altimeter().vertical_velocity_noise()));
+            _in.altimeter().vertical_velocity_noise()));
       }
     }
     else
     {
       gzerr << "Attempting to convert an altimeter sensor message, but the "
-        << "message does not have a altimeter nested message.\n";
+            << "message does not have a altimeter nested message.\n";
     }
 
     out.SetAltimeterSensor(sensor);
@@ -1410,7 +1465,7 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
       if (_in.air_pressure().has_pressure_noise())
       {
         sensor.SetPressureNoise(sim::convert<sdf::Noise>(
-              _in.air_pressure().pressure_noise()));
+            _in.air_pressure().pressure_noise()));
       }
 
       sensor.SetReferenceAltitude(_in.air_pressure().reference_altitude());
@@ -1418,7 +1473,7 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
     else
     {
       gzerr << "Attempting to convert an air pressure sensor message, but the "
-        << "message does not have an air pressure nested message.\n";
+            << "message does not have an air pressure nested message.\n";
     }
 
     out.SetAirPressureSensor(sensor);
@@ -1455,19 +1510,19 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
         {
           sensor.SetLinearAccelerationXNoise(
               sim::convert<sdf::Noise>(
-                _in.imu().linear_acceleration().x_noise()));
+                  _in.imu().linear_acceleration().x_noise()));
         }
         if (_in.imu().linear_acceleration().has_y_noise())
         {
           sensor.SetLinearAccelerationYNoise(
               sim::convert<sdf::Noise>(
-                _in.imu().linear_acceleration().y_noise()));
+                  _in.imu().linear_acceleration().y_noise()));
         }
         if (_in.imu().linear_acceleration().has_z_noise())
         {
           sensor.SetLinearAccelerationZNoise(
               sim::convert<sdf::Noise>(
-                _in.imu().linear_acceleration().z_noise()));
+                  _in.imu().linear_acceleration().z_noise()));
         }
       }
 
@@ -1477,19 +1532,19 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
         {
           sensor.SetAngularVelocityXNoise(
               sim::convert<sdf::Noise>(
-                _in.imu().angular_velocity().x_noise()));
+                  _in.imu().angular_velocity().x_noise()));
         }
         if (_in.imu().angular_velocity().has_y_noise())
         {
           sensor.SetAngularVelocityYNoise(
               sim::convert<sdf::Noise>(
-                _in.imu().angular_velocity().y_noise()));
+                  _in.imu().angular_velocity().y_noise()));
         }
         if (_in.imu().angular_velocity().has_z_noise())
         {
           sensor.SetAngularVelocityZNoise(
               sim::convert<sdf::Noise>(
-                _in.imu().angular_velocity().z_noise()));
+                  _in.imu().angular_velocity().z_noise()));
         }
       }
 
@@ -1509,7 +1564,7 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
         if (_in.imu().orientation_ref_frame().has_gravity_dir_x())
         {
           sensor.SetGravityDirX(msgs::Convert(
-                _in.imu().orientation_ref_frame().gravity_dir_x()));
+              _in.imu().orientation_ref_frame().gravity_dir_x()));
           sensor.SetGravityDirXParentFrame(
               _in.imu().orientation_ref_frame().gravity_dir_x_parent_frame());
         }
@@ -1518,7 +1573,7 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
     else
     {
       gzerr << "Attempting to convert an IMU sensor message, but the "
-        << "message does not have an IMU nested message.\n";
+            << "message does not have an IMU nested message.\n";
     }
 
     out.SetImuSensor(sensor);
@@ -1546,13 +1601,13 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
       if (_in.lidar().has_noise())
       {
         sensor.SetLidarNoise(sim::convert<sdf::Noise>(
-              _in.lidar().noise()));
+            _in.lidar().noise()));
       }
     }
     else
     {
       gzerr << "Attempting to convert a lidar sensor message, but the "
-        << "message does not have a lidar nested message.\n";
+            << "message does not have a lidar nested message.\n";
     }
 
     out.SetLidarSensor(sensor);
@@ -1561,9 +1616,10 @@ sdf::Sensor gz::sim::convert(const msgs::Sensor &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-msgs::WorldStatistics gz::sim::convert(const sim::UpdateInfo &_in)
+    msgs::WorldStatistics
+    gz::sim::convert(const sim::UpdateInfo &_in)
 {
   msgs::WorldStatistics out;
   set(&out, _in);
@@ -1571,9 +1627,10 @@ msgs::WorldStatistics gz::sim::convert(const sim::UpdateInfo &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-sim::UpdateInfo gz::sim::convert(const msgs::WorldStatistics &_in)
+    sim::UpdateInfo
+    gz::sim::convert(const msgs::WorldStatistics &_in)
 {
   sim::UpdateInfo out;
   out.iterations = _in.iterations();
@@ -1585,9 +1642,10 @@ sim::UpdateInfo gz::sim::convert(const msgs::WorldStatistics &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-msgs::AxisAlignedBox gz::sim::convert(const math::AxisAlignedBox &_in)
+    msgs::AxisAlignedBox
+    gz::sim::convert(const math::AxisAlignedBox &_in)
 {
   msgs::AxisAlignedBox out;
   msgs::Set(out.mutable_min_corner(), _in.Min());
@@ -1596,9 +1654,10 @@ msgs::AxisAlignedBox gz::sim::convert(const math::AxisAlignedBox &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-math::AxisAlignedBox gz::sim::convert(const msgs::AxisAlignedBox &_in)
+    math::AxisAlignedBox
+    gz::sim::convert(const msgs::AxisAlignedBox &_in)
 {
   math::AxisAlignedBox out;
   out.Min() = msgs::Convert(_in.min_corner());
@@ -1607,27 +1666,28 @@ math::AxisAlignedBox gz::sim::convert(const msgs::AxisAlignedBox &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-msgs::ParticleEmitter gz::sim::convert(const sdf::ParticleEmitter &_in)
+    msgs::ParticleEmitter
+    gz::sim::convert(const sdf::ParticleEmitter &_in)
 {
   msgs::ParticleEmitter out;
   out.set_name(_in.Name());
   switch (_in.Type())
   {
-    default:
-    case sdf::ParticleEmitterType::POINT:
-      out.set_type(msgs::ParticleEmitter::POINT);
-      break;
-    case sdf::ParticleEmitterType::BOX:
-      out.set_type(msgs::ParticleEmitter::BOX);
-      break;
-    case sdf::ParticleEmitterType::CYLINDER:
-      out.set_type(msgs::ParticleEmitter::CYLINDER);
-      break;
-    case sdf::ParticleEmitterType::ELLIPSOID:
-      out.set_type(msgs::ParticleEmitter::ELLIPSOID);
-      break;
+  default:
+  case sdf::ParticleEmitterType::POINT:
+    out.set_type(msgs::ParticleEmitter::POINT);
+    break;
+  case sdf::ParticleEmitterType::BOX:
+    out.set_type(msgs::ParticleEmitter::BOX);
+    break;
+  case sdf::ParticleEmitterType::CYLINDER:
+    out.set_type(msgs::ParticleEmitter::CYLINDER);
+    break;
+  case sdf::ParticleEmitterType::ELLIPSOID:
+    out.set_type(msgs::ParticleEmitter::ELLIPSOID);
+    break;
   }
 
   msgs::Set(out.mutable_pose(), _in.RawPose());
@@ -1672,7 +1732,7 @@ msgs::ParticleEmitter gz::sim::convert(const sdf::ParticleEmitter &_in)
         gzwarn << "Using deprecated environment variable ["
                << kResourcePathEnvDeprecated
                << "] to find resources. Please use ["
-               << kResourcePathEnv <<" instead." << std::endl;
+               << kResourcePathEnv << " instead." << std::endl;
       }
     }
   }
@@ -1691,27 +1751,28 @@ msgs::ParticleEmitter gz::sim::convert(const sdf::ParticleEmitter &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-sdf::ParticleEmitter gz::sim::convert(const msgs::ParticleEmitter &_in)
+    sdf::ParticleEmitter
+    gz::sim::convert(const msgs::ParticleEmitter &_in)
 {
   sdf::ParticleEmitter out;
   out.SetName(_in.name());
   switch (_in.type())
   {
-    default:
-    case msgs::ParticleEmitter::POINT:
-      out.SetType(sdf::ParticleEmitterType::POINT);
-      break;
-    case msgs::ParticleEmitter::BOX:
-      out.SetType(sdf::ParticleEmitterType::BOX);
-      break;
-    case msgs::ParticleEmitter::CYLINDER:
-      out.SetType(sdf::ParticleEmitterType::CYLINDER);
-      break;
-    case msgs::ParticleEmitter::ELLIPSOID:
-      out.SetType(sdf::ParticleEmitterType::ELLIPSOID);
-      break;
+  default:
+  case msgs::ParticleEmitter::POINT:
+    out.SetType(sdf::ParticleEmitterType::POINT);
+    break;
+  case msgs::ParticleEmitter::BOX:
+    out.SetType(sdf::ParticleEmitterType::BOX);
+    break;
+  case msgs::ParticleEmitter::CYLINDER:
+    out.SetType(sdf::ParticleEmitterType::CYLINDER);
+    break;
+  case msgs::ParticleEmitter::ELLIPSOID:
+    out.SetType(sdf::ParticleEmitterType::ELLIPSOID);
+    break;
   }
   out.SetRawPose(msgs::Convert(_in.pose()));
   out.SetSize(msgs::Convert(_in.size()));
@@ -1754,9 +1815,10 @@ sdf::ParticleEmitter gz::sim::convert(const msgs::ParticleEmitter &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-msgs::Projector gz::sim::convert(const sdf::Projector &_in)
+    msgs::Projector
+    gz::sim::convert(const sdf::Projector &_in)
 {
   msgs::Projector out;
   out.set_name(_in.Name());
@@ -1764,8 +1826,7 @@ msgs::Projector gz::sim::convert(const sdf::Projector &_in)
   out.set_near_clip(_in.NearClip());
   out.set_far_clip(_in.FarClip());
   out.set_fov(_in.HorizontalFov().Radian());
-  out.set_texture(_in.Texture().empty() ? "" :
-      asFullPath(_in.Texture(), _in.FilePath()));
+  out.set_texture(_in.Texture().empty() ? "" : asFullPath(_in.Texture(), _in.FilePath()));
 
   auto header = out.mutable_header()->add_data();
   header->set_key("visibility_flags");
@@ -1775,9 +1836,10 @@ msgs::Projector gz::sim::convert(const sdf::Projector &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-sdf::Projector gz::sim::convert(const msgs::Projector &_in)
+    sdf::Projector
+    gz::sim::convert(const msgs::Projector &_in)
 {
   sdf::Projector out;
   out.SetName(_in.name());
@@ -1811,16 +1873,17 @@ sdf::Projector gz::sim::convert(const msgs::Projector &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-msgs::Plugin gz::sim::convert(const sdf::Element &_in)
+    msgs::Plugin
+    gz::sim::convert(const sdf::Element &_in)
 {
   msgs::Plugin result;
 
   if (_in.GetName() != "plugin")
   {
     gzerr << "Tried to convert SDF [" << _in.GetName()
-           << "] into [plugin]" << std::endl;
+          << "] into [plugin]" << std::endl;
     return result;
   }
 
@@ -1829,7 +1892,7 @@ msgs::Plugin gz::sim::convert(const sdf::Element &_in)
 
   std::stringstream ss;
   for (auto innerElem = _in.GetFirstElement(); innerElem;
-      innerElem = innerElem->GetNextElement(""))
+       innerElem = innerElem->GetNextElement(""))
   {
     ss << innerElem->ToString("");
   }
@@ -1839,9 +1902,10 @@ msgs::Plugin gz::sim::convert(const sdf::Element &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-msgs::Plugin gz::sim::convert(const sdf::Plugin &_in)
+    msgs::Plugin
+    gz::sim::convert(const sdf::Plugin &_in)
 {
   msgs::Plugin result;
 
@@ -1859,9 +1923,10 @@ msgs::Plugin gz::sim::convert(const sdf::Plugin &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-msgs::Plugin_V gz::sim::convert(const sdf::Plugins &_in)
+    msgs::Plugin_V
+    gz::sim::convert(const sdf::Plugins &_in)
 {
   msgs::Plugin_V result;
   for (const sdf::Plugin &plugin : _in)
@@ -1872,17 +1937,19 @@ msgs::Plugin_V gz::sim::convert(const sdf::Plugins &_in)
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-sdf::Plugin gz::sim::convert(const msgs::Plugin &_in)
+    sdf::Plugin
+    gz::sim::convert(const msgs::Plugin &_in)
 {
   return sdf::Plugin(_in.filename(), _in.name(), _in.innerxml());
 }
 
 //////////////////////////////////////////////////
-template<>
+template <>
 GZ_SIM_VISIBLE
-sdf::Plugins gz::sim::convert(const msgs::Plugin_V &_in)
+    sdf::Plugins
+    gz::sim::convert(const msgs::Plugin_V &_in)
 {
   sdf::Plugins result;
   for (int i = 0; i < _in.plugins_size(); ++i)

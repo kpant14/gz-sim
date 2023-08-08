@@ -35,6 +35,7 @@
 #include <gz/sensors/CameraSensor.hh>
 #include <gz/sensors/DepthCameraSensor.hh>
 #include <gz/sensors/GpuLidarSensor.hh>
+#include <gz/sensors/NavSatMultipathSensor.hh>
 #include <gz/sensors/RenderingSensor.hh>
 #include <gz/sensors/RgbdCameraSensor.hh>
 #include <gz/sensors/ThermalCameraSensor.hh>
@@ -42,12 +43,14 @@
 #include <gz/sensors/WideAngleCameraSensor.hh>
 #include <gz/sensors/Manager.hh>
 
+#include "gz/sim/components/LinearVelocity.hh"
 #include "gz/sim/components/Atmosphere.hh"
 #include "gz/sim/components/BatterySoC.hh"
 #include "gz/sim/components/BoundingBoxCamera.hh"
 #include "gz/sim/components/Camera.hh"
 #include "gz/sim/components/DepthCamera.hh"
 #include "gz/sim/components/GpuLidar.hh"
+#include "gz/sim/components/NavSatMultipath.hh"
 #include "gz/sim/components/ParentEntity.hh"
 #include "gz/sim/components/RenderEngineServerHeadless.hh"
 #include "gz/sim/components/RenderEngineServerPlugin.hh"
@@ -58,7 +61,7 @@
 #include "gz/sim/components/World.hh"
 #include "gz/sim/Events.hh"
 #include "gz/sim/EntityComponentManager.hh"
-
+#include "gz/sim/Util.hh"
 #include "gz/sim/rendering/Events.hh"
 #include "gz/sim/rendering/RenderUtil.hh"
 
@@ -200,6 +203,10 @@ class gz::sim::systems::SensorsPrivate
   /// \brief Update battery state of sensors in model
   /// \param[in] _ecm Entity component manager
   public: void UpdateBatteryState(const EntityComponentManager &_ecm);
+
+   /// \brief Update battery state of sensors in model
+  /// \param[in] _ecm Entity component manager
+  public: void UpdateNavSatMultipath(const EntityComponentManager &_ecm);
 
   /// \brief Get the next closest sensor update time
   public: std::chrono::steady_clock::duration NextUpdateTime(
@@ -618,6 +625,7 @@ void Sensors::Update(const UpdateInfo &_info,
        _ecm.HasComponentType(components::Camera::typeId) ||
        _ecm.HasComponentType(components::DepthCamera::typeId) ||
        _ecm.HasComponentType(components::GpuLidar::typeId) ||
+       _ecm.HasComponentType(components::NavSatMultipath::typeId) ||
        _ecm.HasComponentType(components::RgbdCamera::typeId) ||
        _ecm.HasComponentType(components::ThermalCamera::typeId) ||
        _ecm.HasComponentType(components::SegmentationCamera::typeId) ||
@@ -648,6 +656,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
          _ecm.HasComponentType(components::Camera::typeId) ||
          _ecm.HasComponentType(components::DepthCamera::typeId) ||
          _ecm.HasComponentType(components::GpuLidar::typeId) ||
+         _ecm.HasComponentType(components::NavSatMultipath::typeId) ||
          _ecm.HasComponentType(components::RgbdCamera::typeId) ||
          _ecm.HasComponentType(components::ThermalCamera::typeId) ||
          _ecm.HasComponentType(components::SegmentationCamera::typeId) ||
@@ -688,6 +697,7 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     {
       this->dataPtr->nextUpdateTime = this->dataPtr->NextUpdateTime(
           this->dataPtr->sensorsToUpdate, _info.simTime);
+      this->dataPtr->UpdateNavSatMultipath(_ecm);
     }
 
     // notify the render thread if updates are available
@@ -792,6 +802,48 @@ void SensorsPrivate::UpdateBatteryState(const EntityComponentManager &_ecm)
 }
 
 //////////////////////////////////////////////////
+void SensorsPrivate::UpdateNavSatMultipath(const EntityComponentManager &_ecm)
+{
+  GZ_PROFILE("NavSatMultipath::Update");
+
+  _ecm.Each<components::NavSatMultipath, components::WorldLinearVelocity>(
+    [&](const Entity &_entity,
+        const components::NavSatMultipath * /*NavSatMultipath*/,
+        const components::WorldLinearVelocity *_worldLinearVel
+        )->bool
+      {
+        auto it = this->entityToIdMap.find(_entity);
+                
+        if (it == this->entityToIdMap.end())
+        {
+          gzerr << "Failed to update NavSatMultipath sensor entity [" << _entity
+                << "]. Entity not found." << std::endl;
+          return true;
+        }
+        // Position
+        auto latLonEle = sphericalCoordinates(_entity, _ecm);
+        if (!latLonEle)
+        {
+          gzwarn << "Failed to update NavSatMultipath sensor entity [" << _entity
+                  << "]. Spherical coordinates not set." << std::endl;
+          return true;        
+        }
+        sensors::Sensor *s = this->sensorManager.Sensor(it->first);
+        //auto navSatMultipathSensor = dynamic_cast<sensors::NavSatMultipathSensor *>(s);
+        auto navSatMultipathSensor = dynamic_cast<sensors::NavSatMultipathSensor *>(this->sensorManager.Sensor(it->first));
+
+
+        navSatMultipathSensor->SetLatitude(GZ_DTOR(latLonEle.value().X()));
+        navSatMultipathSensor->SetLongitude(GZ_DTOR(latLonEle.value().Y()));
+        navSatMultipathSensor->SetAltitude(latLonEle.value().Z());
+
+        // Velocity in ENU frame
+        navSatMultipathSensor->SetVelocity(_worldLinearVel->Data());
+        return true;
+      });
+}
+
+//////////////////////////////////////////////////
 std::string Sensors::CreateSensor(const Entity &_entity,
     const sdf::Sensor &_sdf, const std::string &_parentName)
 {
@@ -817,6 +869,11 @@ std::string Sensors::CreateSensor(const Entity &_entity,
   {
     sensor = this->dataPtr->sensorManager.CreateSensor<
       sensors::GpuLidarSensor>(_sdf);
+  }
+  else if (_sdf.Type() == sdf::SensorType::NAVSAT_MULTIPATH)
+  {
+    sensor = this->dataPtr->sensorManager.CreateSensor<
+        sensors::NavSatMultipathSensor>(_sdf);
   }
   else if (_sdf.Type() == sdf::SensorType::RGBD_CAMERA)
   {
@@ -927,7 +984,6 @@ std::string Sensors::CreateSensor(const Entity &_entity,
            << "The resulting temperature range is: " << tempRange
            << " Kelvin." << std::endl;
   }
-
   return sensor->Name();
 }
 
