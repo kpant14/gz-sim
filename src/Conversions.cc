@@ -1150,43 +1150,42 @@ GZ_SIM_VISIBLE
             << "sensor pointer is null.\n";
     }
   }
-  // else if (_in.Type() == sdf::SensorType::GPS ||
-  //          _in.Type() == sdf::SensorType::NAVSAT_MULTIPATH)
-  // {
-  //   if (_in.NavSatMultipathSensor())
-  //   {
-  //     auto sdfSensor = _in.NavSatMultipathSensor();
+  else if (_in.Type() == sdf::SensorType::NAVSAT_MULTIPATH)
+  {
+    if (_in.NavSatMultipathSensor())
+    {
+      auto sdfSensor = _in.NavSatMultipathSensor();
 
-  //     // \TODO(chapulina) Update to navsat on Garden
-  //     auto sensor = out.mutable_gps();
+      // \TODO(chapulina) Update to navsat on Garden
+      auto sensor = out.mutable_gps();
 
-  //     if (sdfSensor->HorizontalPositionNoise().Type() != sdf::NoiseType::NONE)
-  //     {
-  //       sim::set(sensor->mutable_position()->mutable_horizontal_noise(),
-  //                sdfSensor->HorizontalPositionNoise());
-  //     }
-  //     if (sdfSensor->VerticalPositionNoise().Type() != sdf::NoiseType::NONE)
-  //     {
-  //       sim::set(sensor->mutable_position()->mutable_vertical_noise(),
-  //                sdfSensor->VerticalPositionNoise());
-  //     }
-  //     if (sdfSensor->HorizontalVelocityNoise().Type() != sdf::NoiseType::NONE)
-  //     {
-  //       sim::set(sensor->mutable_velocity()->mutable_horizontal_noise(),
-  //                sdfSensor->HorizontalVelocityNoise());
-  //     }
-  //     if (sdfSensor->VerticalVelocityNoise().Type() != sdf::NoiseType::NONE)
-  //     {
-  //       sim::set(sensor->mutable_velocity()->mutable_vertical_noise(),
-  //                sdfSensor->VerticalVelocityNoise());
-  //     }
-  //   }
-  //   else
-  //   {
-  //     gzerr << "Attempting to convert a NavSatMultipath SDF sensor, but the "
-  //           << "sensor pointer is null.\n";
-  //   }
-  // }
+      if (sdfSensor->HorizontalPositionNoise().Type() != sdf::NoiseType::NONE)
+      {
+        sim::set(sensor->mutable_position()->mutable_horizontal_noise(),
+                 sdfSensor->HorizontalPositionNoise());
+      }
+      if (sdfSensor->VerticalPositionNoise().Type() != sdf::NoiseType::NONE)
+      {
+        sim::set(sensor->mutable_position()->mutable_vertical_noise(),
+                 sdfSensor->VerticalPositionNoise());
+      }
+      if (sdfSensor->HorizontalVelocityNoise().Type() != sdf::NoiseType::NONE)
+      {
+        sim::set(sensor->mutable_velocity()->mutable_horizontal_noise(),
+                 sdfSensor->HorizontalVelocityNoise());
+      }
+      if (sdfSensor->VerticalVelocityNoise().Type() != sdf::NoiseType::NONE)
+      {
+        sim::set(sensor->mutable_velocity()->mutable_vertical_noise(),
+                 sdfSensor->VerticalVelocityNoise());
+      }
+    }
+    else
+    {
+      gzerr << "Attempting to convert a NavSatMultipath SDF sensor, but the "
+            << "sensor pointer is null.\n";
+    }
+  }
 
   else if (_in.Type() == sdf::SensorType::ALTIMETER)
   {
@@ -1316,8 +1315,7 @@ GZ_SIM_VISIBLE
     }
   }
   else if (_in.Type() == sdf::SensorType::LIDAR ||
-           _in.Type() == sdf::SensorType::GPU_LIDAR ||
-           _in.Type() == sdf::SensorType::NAVSAT_MULTIPATH)
+           _in.Type() == sdf::SensorType::GPU_LIDAR)
   {
     if (_in.LidarSensor())
     {

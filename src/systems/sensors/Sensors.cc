@@ -697,9 +697,9 @@ void Sensors::PostUpdate(const UpdateInfo &_info,
     {
       this->dataPtr->nextUpdateTime = this->dataPtr->NextUpdateTime(
           this->dataPtr->sensorsToUpdate, _info.simTime);
-      this->dataPtr->UpdateNavSatMultipath(_ecm);
     }
-
+    if (this->dataPtr->SensorsHaveConnections())
+        this->dataPtr->UpdateNavSatMultipath(_ecm);
     // notify the render thread if updates are available
     if (hasRenderConnections ||
         this->dataPtr->nextUpdateTime <= _info.simTime ||
@@ -828,10 +828,8 @@ void SensorsPrivate::UpdateNavSatMultipath(const EntityComponentManager &_ecm)
                   << "]. Spherical coordinates not set." << std::endl;
           return true;        
         }
-        sensors::Sensor *s = this->sensorManager.Sensor(it->first);
-        //auto navSatMultipathSensor = dynamic_cast<sensors::NavSatMultipathSensor *>(s);
-        auto navSatMultipathSensor = dynamic_cast<sensors::NavSatMultipathSensor *>(this->sensorManager.Sensor(it->first));
-
+        sensors::Sensor *s = this->sensorManager.Sensor(it->second);
+        auto navSatMultipathSensor = dynamic_cast<sensors::NavSatMultipathSensor *>(s);
 
         navSatMultipathSensor->SetLatitude(GZ_DTOR(latLonEle.value().X()));
         navSatMultipathSensor->SetLongitude(GZ_DTOR(latLonEle.value().Y()));
