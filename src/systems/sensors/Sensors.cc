@@ -64,6 +64,8 @@
 #include "gz/sim/Util.hh"
 #include "gz/sim/rendering/Events.hh"
 #include "gz/sim/rendering/RenderUtil.hh"
+#include "gz/sim/components/Name.hh"
+#include "gz/sim/components/Model.hh"
 
 using namespace gz;
 using namespace sim;
@@ -820,6 +822,8 @@ void SensorsPrivate::UpdateNavSatMultipath(const EntityComponentManager &_ecm)
                 << "]. Entity not found." << std::endl;
           return true;
         }
+       
+
         // Position
         auto latLonEle = sphericalCoordinates(_entity, _ecm);
         if (!latLonEle)
@@ -828,12 +832,21 @@ void SensorsPrivate::UpdateNavSatMultipath(const EntityComponentManager &_ecm)
                   << "]. Spherical coordinates not set." << std::endl;
           return true;        
         }
+
+        auto _meaconSpooferEntity = _ecm.EntityByComponents(
+          components::Model(),
+          components::Name("spoofer"));
+        auto latLonEleSpoofer = sphericalCoordinates(_meaconSpooferEntity, _ecm);
+
         sensors::Sensor *s = this->sensorManager.Sensor(it->second);
         auto navSatMultipathSensor = dynamic_cast<sensors::NavSatMultipathSensor *>(s);
 
         navSatMultipathSensor->SetLatitude(GZ_DTOR(latLonEle.value().X()));
         navSatMultipathSensor->SetLongitude(GZ_DTOR(latLonEle.value().Y()));
         navSatMultipathSensor->SetAltitude(latLonEle.value().Z());
+
+        navSatMultipathSensor->SetSpooferPosition(GZ_DTOR(latLonEleSpoofer.value().X()),
+                                GZ_DTOR(latLonEleSpoofer.value().Y()), latLonEleSpoofer.value().Z());
 
         // Velocity in ENU frame
         navSatMultipathSensor->SetVelocity(_worldLinearVel->Data());
